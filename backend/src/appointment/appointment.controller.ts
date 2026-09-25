@@ -1,11 +1,9 @@
 import {Body,Controller,Delete,Get,Param,Patch,Post,Query,Req} from '@nestjs/common';
 import {IsDateString,IsIn,IsInt,IsNotEmpty,IsString,Max,Min} from 'class-validator';
 import {AppointmentService} from './appointment.service';
-
 class CreateAppointmentBody{@IsString()@IsNotEmpty()customerName!:string;@IsString()@IsNotEmpty()customerPhone!:string;@IsString()@IsNotEmpty()service!:string;@IsDateString()appointmentAt!:string}
 class StatusBody{@IsString()@IsIn(['confirmed','completed','cancelled'])status!:'confirmed'|'completed'|'cancelled'}
 class DelayBody{@IsInt()@Min(1)@Max(600)minutesLate!:number}
-
 @Controller('appointments')
 export class AppointmentController{
  constructor(private service:AppointmentService){}
