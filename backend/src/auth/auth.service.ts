@@ -13,16 +13,17 @@ export interface AuthServiceContract{
 @Injectable()
 export class AuthService implements AuthServiceContract{
  constructor(@InjectRepository(Business) private businesses:Repository<Business>,private jwt:JwtService){}
+ private publicBusiness(b:Business){const {passwordHash,...safe}=b;return safe as Business}
  async signup(input:{name:string;email:string;password:string;phone:string}){
   const email=input.email.trim().toLowerCase();
   if(await this.businesses.findOne({where:{ownerEmail:email}}))throw new ConflictException('Email already registered');
   const business=this.businesses.create({name:input.name.trim(),ownerEmail:email,passwordHash:await bcrypt.hash(input.password,12),phone:input.phone.trim()});
   await this.businesses.save(business);
-  return {accessToken:this.jwt.sign({sub:business.id,email:business.ownerEmail}),business};
+  return {accessToken:this.jwt.sign({sub:business.id,email:business.ownerEmail}),business:this.publicBusiness(business)};
  }
  async login(input:{email:string;password:string}){
   const business=await this.businesses.findOne({where:{ownerEmail:input.email.trim().toLowerCase()}});
   if(!business||!(await bcrypt.compare(input.password,business.passwordHash)))throw new UnauthorizedException('Invalid email or password');
-  return {accessToken:this.jwt.sign({sub:business.id,email:business.ownerEmail}),business};
+  return {accessToken:this.jwt.sign({sub:business.id,email:business.ownerEmail}),business:this.publicBusiness(business)};
  }
 }
