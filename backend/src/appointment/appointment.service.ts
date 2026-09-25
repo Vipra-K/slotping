@@ -25,7 +25,7 @@ export class AppointmentService implements AppointmentServiceContract{
   const log=await this.whatsapp.sendConfirmation(appointment);if(log.status==='failed')console.warn('Confirmation was logged as failed');
   return appointment;
  }
- async list(businessId:string,date?:string){const [start,end]=this.dayRange(date);return this.appointments.find({where:{businessId,appointmentAt:Between(start,end)},order:{appointmentAt:'ASC'}})}
+ async list(businessId:string,date?:string){const [start,end]=this.dayRange(date);return this.appointments.find({where:{businessId,appointmentAt:Between(start,end)},relations:{customer:true},order:{appointmentAt:'ASC'}})}
  async updateStatus(businessId:string,id:string,status:'confirmed'|'completed'|'cancelled'){const a=await this.appointments.findOne({where:{id,businessId}});if(!a)throw new NotFoundException('Appointment not found');a.status=status;return this.appointments.save(a)}
  async remove(businessId:string,id:string){const r=await this.appointments.delete({id,businessId});if(!r.affected)throw new NotFoundException('Appointment not found')}
  async delay(businessId:string,id:string,minutesLate:number){if(!Number.isInteger(minutesLate)||minutesLate<1||minutesLate>600)throw new BadRequestException('minutesLate must be between 1 and 600');const a=await this.appointments.findOne({where:{id,businessId}});if(!a)throw new NotFoundException('Appointment not found');return this.whatsapp.sendDelayAlert(a,minutesLate)}
